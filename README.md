@@ -1,36 +1,131 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Test technique – Gestion des chargements
 
-## Getting Started
+## Déploiement en ligne :  
+https://chargements-g8kbq9sa4-evanattacks-projects.vercel.app/chargements
 
-First, run the development server:
+## Application web permettant de :
+- Lister les chargements existants
+- Créer un nouveau chargement
+- Associer des produits à un chargement
+- Stockage des données via Supabase
+- Déploiement sur Vercel
+
+Techno utilisées :   
+- Next.js 
+- Supabase  
+- TailwindCSS
+
+---
+
+## Installation du projet
+
+### Prérequis
+- Node.js 
+- npm ou yarn
+
+### Installation
 
 ```bash
+git clone https://github.com/EvanAttack/chargements-app.git
+cd chargements-app
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Le site sera disponible sur :
+➡ http://localhost:3000
+ 
+## Configuration Supabase
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Création du projet
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Aller sur https://supabase.com
+2. Créer un projet
+3. Récupérer :
+   - l'URL
+   - et la Key
 
-## Learn More
+### Variables d’environnement
 
-To learn more about Next.js, take a look at the following resources:
+Créer un fichier .env.local à la racine :
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co
+NEXT_PUBLIC_SUPABASE_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Tables SQL à créer*
 
-## Deploy on Vercel
+Schéma visuel :
+![SVG Image](public/Database.svg)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+![img.png](public/img.png)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Depuis Supabase → SQL Editor → coller :
+```sql
+
+CREATE TABLE public.chargement_produits (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  chargement_id bigint NOT NULL,
+  produit_id bigint,
+  quantite bigint,
+  CONSTRAINT chargement_produits_pkey PRIMARY KEY (id),
+  CONSTRAINT chargement_produits_chargement_id_fkey FOREIGN KEY (chargement_id) REFERENCES public.chargements(id),
+  CONSTRAINT chargement_produits_produit_id_fkey FOREIGN KEY (produit_id) REFERENCES public.produits(id)
+);
+
+CREATE TABLE public.chargements (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  client_id bigint NOT NULL,
+  transporteur_id bigint,
+  creation date,
+  CONSTRAINT chargements_pkey PRIMARY KEY (id),
+  CONSTRAINT chargements_client_id_fkey FOREIGN KEY (client_id) REFERENCES public.clients(id),
+  CONSTRAINT chargements_transporteur_id_fkey FOREIGN KEY (transporteur_id) REFERENCES public.transports(id)
+);
+
+CREATE TABLE public.clients (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  nom character varying NOT NULL,
+  CONSTRAINT clients_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE public.produits (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  nom character varying NOT NULL,
+  CONSTRAINT produits_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE public.transports (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  nom character varying NOT NULL,
+  CONSTRAINT transports_pkey PRIMARY KEY (id)
+);
+
+```
+
+### RLS Policies à activer
+
+Pour pouvoir utiliser l'application, activer les Row Level Security (RLS) :  
+- Pour permettre la lecture (SELECT) : 
+```sql
+create policy "Allow public select" on public.clients for select using (true);
+create policy "Allow public select" on public.transports for select using (true);
+create policy "Allow public select" on public.produits for select using (true);
+create policy "Allow public select" on public.chargements for select using (true);
+create policy "Allow public select" on public.chargement_produits for select using (true);
+```
+- Pour permettre l'insertion (INSERT) et la suppresion (DELETE) :
+```sql
+create policy "Allow insert" on public.chargements for insert with check (true);
+create policy "Allow insert" on public.chargement_produits for insert with check (true);
+```
+
+
+## Pages principales
+	
+
+| Page              |                       Fonction                       |  
+|-------------------|:----------------------------------------------------:|
+| /chargements      |           Liste les chargements existants            |   
+| /nouveau          | Formulaire de création d’un chargement avec produits |
+| /chargements/[id] |          Liste des produits d’un chargement          |
+
