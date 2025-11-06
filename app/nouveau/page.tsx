@@ -4,6 +4,7 @@ import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import {motion} from "framer-motion";
 
 
 export default function NouveauChargement() {
@@ -196,23 +197,28 @@ export default function NouveauChargement() {
                             >
                                 Ajouter un produit
                             </button>
+
                         </div>
 
                         <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
-                            <button
+                            <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
                                 type="button"
                                 onClick={back}
                                 className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition"
                             >
                                 Annuler
-                            </button>
-                            <button
+                            </motion.button>
+                            <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
                                 type="button"
                                 onClick={submit}
                                 className="px-6 py-2 bg-blue-600 text-white rounded-lg shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
                             >
                                 Enregistrer
-                            </button>
+                            </motion.button>
                         </div>
                     </div>
                 </div>

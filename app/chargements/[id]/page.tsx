@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter, useParams } from "next/navigation";
 import Image from "next/image";
+import {motion} from "framer-motion";
 
 type Client = {
     nom: string;
@@ -111,11 +112,26 @@ export default function ChargementDetails() {
         );
     }
 
+    const produitVariants = {
+        hidden: { opacity: 0, y: 50 },
+        visible: { opacity: 1, y: 0 },
+    };
+
     return (
-        <div className="min-h-screen bg-gray-50 p-6">
-            <div className="max-w-4xl mx-auto">
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="min-h-screen bg-gray-50 p-6"
+        >
+            <motion.div className="max-w-4xl mx-auto">
                 {/* En-tête */}
-                <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+                <motion.div
+                    initial={{ y: -20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.1 }}
+                    className="bg-white rounded-xl shadow-lg p-6 mb-8"
+                >
                     <div className="flex justify-between items-start mb-6">
                         <div>
                             <h1 className="text-2xl font-bold text-gray-800 mb-2">
@@ -125,12 +141,14 @@ export default function ChargementDetails() {
                                 Créé le <span className="font-medium">{chargement.date}</span>
                             </p>
                         </div>
-                        <button
-                            onClick={() => router.push("/chargements")}
+                        <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
                             className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
+                            onClick={() => router.push(`/chargements`)}
                         >
                             Retour
-                        </button>
+                        </motion.button>
                     </div>
 
                     {/* Infos client/transporteur */}
@@ -144,25 +162,51 @@ export default function ChargementDetails() {
                             <p className="text-lg font-semibold text-gray-800">{chargement.transporteur}</p>
                         </div>
                     </div>
-                </div>
+                </motion.div>
 
                 {/* Liste des produits */}
-                <div className="bg-white rounded-xl shadow-lg p-6">
-                    <h2 className="text-xl font-bold text-gray-800 mb-6">Produits</h2>
+                <motion.div
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                    className="bg-white rounded-xl shadow-lg p-6"
+                >
+                    <motion.h2
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.3 }}
+                        className="text-xl font-bold text-gray-800 mb-6"
+                    >
+                        Produits
+                    </motion.h2>
                     <div className="space-y-6">
-                        {chargement.produits.map((produit) => (
-                            <div
+                        {chargement.produits.map((produit, index) => (
+                            <motion.div
                                 key={produit.id}
+                                variants={produitVariants}
+                                initial="hidden"
+                                animate="visible"
+                                transition={{
+                                    delay: 0.1 * index,
+                                    duration: 0.5,
+                                    ease: "easeOut"
+                                }}
                                 className="flex flex-col sm:flex-row items-center gap-6 p-4 bg-gray-50 rounded-lg"
                             >
-                                {/* Image du produit (cherche dans /public) */}
+                                {/* Image du produit */}
                                 <div className="relative w-32 h-32 flex-shrink-0">
                                     <Image
                                         src={`/images/${produit.nom.toLowerCase().replace(/\s+/g, "-")}.jpg`}
-                                        alt={produit.nom} fill className="object-contain rounded-lg"
+                                        alt={produit.nom}
+                                        fill
+                                        className="object-contain rounded-lg"
+                                        onError={(e) => {
+                                            e.currentTarget.src = "/images/placeholder.png";
+                                        }}
                                     />
                                 </div>
 
+                                {/* Infos du produit */}
                                 <div className="flex-1">
                                     <h3 className="text-lg font-semibold text-gray-800 mb-1">{produit.nom}</h3>
                                     <p className="text-gray-600">
@@ -170,14 +214,15 @@ export default function ChargementDetails() {
                                     </p>
                                 </div>
 
+                                {/* Badge de quantité */}
                                 <div className="bg-blue-100 text-blue-800 px-4 py-2 rounded-full font-bold text-lg">
                                     {produit.quantite}
                                 </div>
-                            </div>
+                            </motion.div>
                         ))}
                     </div>
-                </div>
-            </div>
-        </div>
+                </motion.div>
+            </motion.div>
+        </motion.div>
     );
 }
