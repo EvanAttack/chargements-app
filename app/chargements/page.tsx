@@ -13,9 +13,11 @@ export default function ChargementsPage() {
     type Chargement = {
         id: number;
         creation: string;
-        clients: { nom: string }[];
-        transports: { nom: string }[];
+        clients: { nom: string };
+        transports: { nom: string };
     };
+
+
 
 
     const router = useRouter();
@@ -41,7 +43,7 @@ export default function ChargementsPage() {
     }, [searchParams]);
 
     async function fetchChargements() {
-        const { data, error } = await supabase.from("chargements").select("id, clients(nom), transports(nom), creation");
+        const { data, error } = await supabase.from("chargements").select("id, clients(nom), transports(nom), creation").returns<Chargement[]>();
 
         if (error) console.error(error);
         else setChargements(data);
@@ -60,11 +62,11 @@ export default function ChargementsPage() {
                 position: "top-right",
                 autoClose: 3000,
             });
-            fetchChargements();
+            await fetchChargements();
 
         } catch (err) {
             console.error("Erreur lors de la suppression:", err);
-            toast.error(`Erreur : ${err.message}`, {
+            toast.error(`Une erreur est survenue`, {
                 position: "top-right",
                 autoClose: 5000,
             });
@@ -88,7 +90,6 @@ export default function ChargementsPage() {
                         <Link
                             href="/nouveau"
                             className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md"
-
                         >
                             Nouveau chargement
                         </Link>
