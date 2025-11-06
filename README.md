@@ -55,8 +55,6 @@ NEXT_PUBLIC_SUPABASE_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ### Tables SQL à créer*
 
 Schéma visuel :
-![SVG Image](public/Database.svg)
-
 ![img.png](public/img.png)
 
 Depuis Supabase → SQL Editor → coller :
@@ -99,8 +97,9 @@ CREATE TABLE public.transports (
   nom character varying NOT NULL,
   CONSTRAINT transports_pkey PRIMARY KEY (id)
 );
-
 ```
+_PS : pensez à configurer les contraintes en ON DELETE CASCADE sur la table chargements et chargement_produits.
+Ainsi, lorsqu’un chargement est supprimé, les produits liés sont supprimés automatiquement._
 
 ### RLS Policies à activer
 
