@@ -1,7 +1,7 @@
 # Test technique – Gestion des chargements
 
 ## Déploiement en ligne :  
-https://chargements-g8kbq9sa4-evanattacks-projects.vercel.app/chargements
+https://chargements-app.vercel.app/chargements
 
 ## Application web permettant de :
 - Lister les chargements existants
