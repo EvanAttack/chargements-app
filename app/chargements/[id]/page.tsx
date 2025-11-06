@@ -4,9 +4,30 @@ import { supabase } from "@/lib/supabase";
 import { useRouter, useParams } from "next/navigation";
 import Image from "next/image";
 
-type Produit = {
-    id: number;
+type Client = {
     nom: string;
+};
+
+type Transporteur = {
+    nom: string;
+};
+
+type ChargementData = {
+    id: number;
+    creation: string;
+    client_id: {
+        nom: string;
+    };
+    transporteur_id: {
+        nom: string;
+    };
+};
+
+type ProduitData = {
+    produit_id: {
+        id: number;
+        nom: string;
+    };
     quantite: number;
 };
 
@@ -15,8 +36,13 @@ type ChargementDetails = {
     client: string;
     transporteur: string;
     date: string;
-    produits: Produit[];
+    produits: {
+        id: number;
+        nom: string;
+        quantite: number;
+    }[];
 };
+
 
 export default function ChargementDetails() {
     const router = useRouter();
@@ -32,24 +58,22 @@ export default function ChargementDetails() {
     async function fetchChargementDetails(chargementId: number) {
         try {
             setLoading(true);
-            // 1. Récupère les infos du chargement
             const { data: chargementData, error: chargementError } = await supabase
                 .from("chargements")
                 .select("id, creation, client_id(nom), transporteur_id(nom)")
                 .eq("id", chargementId)
-                .single();
+                .single<ChargementData>();
 
             if (chargementError) throw chargementError;
 
-            // 2. Récupère les produits liés
             const { data: produitsData, error: produitsError } = await supabase
                 .from("chargement_produits")
                 .select("produit_id(id, nom), quantite")
-                .eq("chargement_id", chargementId);
+                .eq("chargement_id", chargementId)
+                .returns<ProduitData[]>();
 
             if (produitsError) throw produitsError;
 
-            // Formate les données
             const details: ChargementDetails = {
                 id: chargementData.id,
                 client: chargementData.client_id.nom,
