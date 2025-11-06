@@ -2,6 +2,9 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 
 export default function NouveauChargement() {
 
@@ -45,6 +48,12 @@ export default function NouveauChargement() {
         setProduits([...produits, { produit_id: "", quantite: 1 }]);
     }
 
+    function removeProduit(index: number) {
+        const updatedProduits = produits.filter((_, i) => i !== index);
+        setProduits(updatedProduits);
+    }
+
+
     function updateProduit(index: number, key: string, value: any) {
         const updated = [...produits];
         // @ts-ignore
@@ -53,76 +62,148 @@ export default function NouveauChargement() {
     }
 
     async function submit() {
-        const { data, error } = await supabase.from("chargements")
-            .insert({
-                client_id: clientId,
-                transporteur_id: transporteurId,
-                creation: new Date().toISOString()
-            })
-            .select("id")
-            .single();
+        try {
+            const { data, error } = await supabase.from("chargements")
+                .insert({
+                    client_id: clientId,
+                    transporteur_id: transporteurId,
+                    creation: new Date().toISOString()
+                })
+                .select("id")
+                .single();
 
-        if (error) {
-            console.error("Erreur :", error);
-            return alert(error.message);
-        }
-        const chargementId = data.id;
-        for (const p of produits) {
-            await supabase.from("chargement_produits").insert({
-                chargement_id: chargementId,
-                produit_id: p.produit_id,
-                quantite: p.quantite,
+            if (error) {
+                throw new Error(error.message);
+            }
+
+            const chargementId = data.id;
+            for (const p of produits) {
+                const { error: produitError } = await supabase.from("chargement_produits").insert({
+                    chargement_id: chargementId,
+                    produit_id: p.produit_id,
+                    quantite: p.quantite,
+                });
+                if (produitError) throw new Error(produitError.message);
+            }
+
+            router.push("/chargements?success=Chargement créé avec succès !");
+
+        } catch (err) {
+            toast.error("Une erreur est survenue", {
+                position: "top-right",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
             });
         }
-        alert("Sauvegardé !");
+    }
+
+    async function back() {
         router.push("/chargements");
     }
 
     return (
-        <div>
-            <h1>Nouveau chargement</h1>
+            <div className="min-h-screen bg-gray-50 p-6">
+                <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
+                <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-8">
+                    <h1 className="text-3xl font-bold text-gray-800 mb-8">Nouveau chargement</h1>
 
-            <div>
-                <label>Client :</label>
-                <select onChange={(e) => setClientId(e.target.value)}>
-                    <option>Choisir...</option>
-                    {clients.map((c: any) => (
-                        <option key={c.id} value={c.id}>{c.nom}</option>
-                    ))}
-                </select>
-            </div>
+                    <div className="space-y-6">
+                        {/* Client */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Client</label>
+                            <select
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-800"
+                                onChange={(e) => setClientId(e.target.value)}
+                                value={clientId}
+                            >
+                                <option value="">Choisir un client</option>
+                                {clients.map((c) => (
+                                    <option key={c.id} value={c.id}>{c.nom}</option>
+                                ))}
+                            </select>
+                        </div>
 
-            <div>
-                <label>Transporteur :</label>
-                <select onChange={(e) => setTransporteurId(e.target.value)}>
-                    <option>Choisir...</option>
-                    {transports.map((t: any) => (
-                        <option key={t.id} value={t.id}>{t.nom}</option>
-                    ))}
-                </select>
-            </div>
+                        {/* Transporteur */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Transporteur</label>
+                            <select
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-800"
+                                onChange={(e) => setTransporteurId(e.target.value)}
+                                value={transporteurId}
+                            >
+                                <option value="">Choisir un transporteur</option>
+                                {transports.map((t) => (
+                                    <option key={t.id} value={t.id}>
+                                        {t.nom}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
 
-            <h2>Produits</h2>
+                        {/* Produits */}
+                        <div>
+                            <h2 className="text-xl font-semibold text-gray-800 mb-4">Produits</h2>
+                            {produits.map((p, i) => (
+                                <div key={i} className="flex items-center space-x-4 mb-4">
+                                    <select
+                                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-800"
+                                        onChange={(e) => updateProduit(i, "produit_id", e.target.value)}
+                                        value={p.produit_id}
+                                    >
+                                        <option value="">Choisir un produit</option>
+                                        {produitsList.map((prod) => (
+                                            <option key={prod.id} value={prod.id}>
+                                                {prod.nom}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <input
+                                        type="number"
+                                        className="w-20 px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-800"
+                                        value={p.quantite}
+                                        onChange={(e) => updateProduit(i, "quantite", e.target.value)}
+                                        min="1"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => removeProduit(i)}
+                                        className="text-red-500 hover:text-red-700 font-medium"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                            ))}
+                            <button
+                                type="button"
+                                onClick={addProduit}
+                                className="flex items-center text-blue-600 hover:text-blue-800 font-medium"
+                            >
+                                Ajouter un produit
+                            </button>
+                        </div>
 
-            {produits.map((p, i) => (
-                <div key={i}>
-                    <select onChange={(e) => updateProduit(i, "produit_id", e.target.value)}>
-                        <option>Choisir un produit</option>
-                        {produitsList.map((prod: any) => (
-                            <option key={prod.id} value={prod.id}>{prod.nom}</option>
-                        ))}
-                    </select>
-                    <input type="number" value={p.quantite} onChange={(e) => updateProduit(i, "quantite", e.target.value)}/>
+                        <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                            <button
+                                type="button"
+                                onClick={back}
+                                className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition"
+                            >
+                                Annuler
+                            </button>
+                            <button
+                                type="button"
+                                onClick={submit}
+                                className="px-6 py-2 bg-blue-600 text-white rounded-lg shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
+                            >
+                                Enregistrer
+                            </button>
+                        </div>
+                    </div>
                 </div>
-            ))}
-
-            <button onClick={addProduit}>
-                Ajouter un produit
-            </button>
-
-            <button onClick={submit}>
-                Enregistrer
-            </button>
-        </div>
+            </div>
     );
 }
