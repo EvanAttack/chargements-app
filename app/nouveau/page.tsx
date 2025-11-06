@@ -7,6 +7,15 @@ import 'react-toastify/dist/ReactToastify.css';
 import {motion} from "framer-motion";
 
 
+
+
+/**
+ * Composant pour la création d'un nouveau chargement.
+ * Permet de sélectionner un client, un transporteur et une liste de produits avec leurs quantités.
+ * @component
+ * @example
+ * return <NouveauChargement />
+ */
 export default function NouveauChargement() {
 
     const router = useRouter();
@@ -35,6 +44,11 @@ export default function NouveauChargement() {
         fetchData();
     }, []);
 
+
+    /**
+     * Récupère les listes de clients, transporteurs et produits depuis la base de données.
+     * @async
+     */
     async function fetchData() {
         const { data: c } = await supabase.from("clients").select("*");
         const { data: t } = await supabase.from("transports").select("*");
@@ -45,16 +59,27 @@ export default function NouveauChargement() {
         setProduitsList(p || []);
     }
 
+    /**
+     * Ajoute un nouveau produit au formulaire.
+     */
     function addProduit() {
         setProduits([...produits, { produit_id: "", quantite: 1 }]);
     }
 
+
+    /**
+     * Supprime un produit du formulaire.
+     * @param {number} index - id du produit à supprimer
+     */
     function removeProduit(index: number) {
         const updatedProduits = produits.filter((_, i) => i !== index);
         setProduits(updatedProduits);
     }
 
 
+    /**
+     * Met à jour un produit dans le formulaire.
+     */
     function updateProduit(index: number, key: string, value: any) {
         const updated = [...produits];
         // @ts-ignore
@@ -62,6 +87,12 @@ export default function NouveauChargement() {
         setProduits(updated);
     }
 
+
+    /**
+     * Soumet le formulaire pour créer un nouveau chargement.
+     * @async
+     * @throws {Error} En cas d'erreur lors de la création du chargement ou des produits associés
+     */
     async function submit() {
         try {
             const { data, error } = await supabase.from("chargements")
@@ -114,6 +145,9 @@ export default function NouveauChargement() {
         }
     }
 
+    /**
+     * Redirige vers la liste des chargements.
+     */
     async function back() {
         router.push("/chargements");
     }

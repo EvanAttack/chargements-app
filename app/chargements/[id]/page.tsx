@@ -5,6 +5,8 @@ import { useRouter, useParams } from "next/navigation";
 import Image from "next/image";
 import {motion} from "framer-motion";
 
+
+
 type Client = {
     nom: string;
 };
@@ -45,6 +47,11 @@ type ChargementDetails = {
 };
 
 
+/**
+ * Composant affichant les détails d'un chargement spécifique via son id
+ * @component
+ * @example
+ */
 export default function ChargementDetails() {
     const router = useRouter();
     const { id } = useParams<{ id: string }>();
@@ -56,9 +63,20 @@ export default function ChargementDetails() {
         fetchChargementDetails(Number(id));
     }, [id]);
 
+
+
+
+    /**
+     * Récupère les détails d'un chargement et ses produits associés depuis Supabase
+     * @async
+     * @param {number} chargementId - Identifiant du chargement à récupérer
+     * @throws {Error} En cas d'erreur de récupération des données
+     */
     async function fetchChargementDetails(chargementId: number) {
         try {
             setLoading(true);
+
+            // Récupère les informations de base du chargement
             const { data: chargementData, error: chargementError } = await supabase
                 .from("chargements")
                 .select("id, creation, client_id(nom), transporteur_id(nom)")
@@ -67,6 +85,8 @@ export default function ChargementDetails() {
 
             if (chargementError) throw chargementError;
 
+
+            // Récupère les produits associés au chargement
             const { data: produitsData, error: produitsError } = await supabase
                 .from("chargement_produits")
                 .select("produit_id(id, nom), quantite")
@@ -75,6 +95,8 @@ export default function ChargementDetails() {
 
             if (produitsError) throw produitsError;
 
+
+            // Formate les données pour l'affichage
             const details: ChargementDetails = {
                 id: chargementData.id,
                 client: chargementData.client_id.nom,

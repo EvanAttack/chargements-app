@@ -9,6 +9,13 @@ import 'react-toastify/dist/ReactToastify.css';
 import { motion } from 'framer-motion';
 
 
+
+/**
+ * Composant affichant la liste des chargements.
+ * Permet de consulter, ajouter ou supprimer des chargements.
+ * @component
+ * @example
+ */
 export default function ChargementsPage() {
 
     type Chargement = {
@@ -30,6 +37,11 @@ export default function ChargementsPage() {
         fetchChargements();
     });
 
+
+    /**
+     * Récupère la liste des chargements depuis la base de données.
+     * @async
+     */
     async function fetchChargements() {
         const { data, error } = await supabase.from("chargements").select("id, clients(nom), transports(nom), creation").returns<Chargement[]>();
 
@@ -37,6 +49,12 @@ export default function ChargementsPage() {
         else setChargements(data);
     }
 
+    /**
+     * Supprime un chargement de la base de données.
+     * @async
+     * @param {number} id - Identifiant du chargement à supprimer
+     * @throws {Error} En cas d'erreur lors de la suppression
+     */
     async function deleteChargement(id: number) {
         try {
             const {error} = await supabase
@@ -60,6 +78,10 @@ export default function ChargementsPage() {
         }
     }
 
+
+    /**
+     * Redirige vers la liste des chargements.
+     */
     function back() {
         router.push("/chargements");
     }
