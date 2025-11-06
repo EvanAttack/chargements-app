@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
-import {useRouter, useSearchParams} from "next/navigation";
+import {useRouter} from "next/navigation";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -23,24 +23,11 @@ export default function ChargementsPage() {
     const router = useRouter();
     const [chargements, setChargements] = useState<Chargement[]>([]);
 
-    const searchParams = useSearchParams();
 
     useEffect(() => {
-        const successMessage = searchParams.get("success");
-        if (successMessage) {
-            toast.success(successMessage, {
-                position: "top-right",
-                autoClose: 3000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-            });
 
-        }
         fetchChargements();
-    }, [searchParams]);
+    });
 
     async function fetchChargements() {
         const { data, error } = await supabase.from("chargements").select("id, clients(nom), transports(nom), creation").returns<Chargement[]>();
@@ -65,7 +52,6 @@ export default function ChargementsPage() {
             await fetchChargements();
 
         } catch (err) {
-            console.error("Erreur lors de la suppression:", err);
             toast.error(`Une erreur est survenue`, {
                 position: "top-right",
                 autoClose: 5000,
@@ -131,3 +117,5 @@ export default function ChargementsPage() {
             </div>
     );
 }
+
+

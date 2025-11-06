@@ -86,7 +86,19 @@ export default function NouveauChargement() {
                 if (produitError) throw new Error(produitError.message);
             }
 
-            router.push("/chargements?success=Chargement créé avec succès !");
+            toast.success("Chargement créé avec succès !", {
+                position: "top-right",
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+            });
+
+            setTimeout(() => {
+                router.push("/chargements");
+            }, 3000);
 
         } catch (err) {
             toast.error("Une erreur est survenue", {
